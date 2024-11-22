@@ -30,13 +30,37 @@ type slogLogger struct {
 }
 
 func (l *slogLogger) Info(msg string, args ...Arg) {
-	l.l.Info(msg, args)
+	arguments := make([]any, 0, len(args))
+	for _, arg := range args {
+		arguments = append(arguments, slog.Attr{
+			Key:   arg.Key,
+			Value: slog.AnyValue(arg.Val),
+		})
+	}
+
+	l.l.Info(msg, arguments...)
 }
 
 func (l *slogLogger) Error(msg string, args ...Arg) {
-	l.l.Error(msg, args)
+	arguments := make([]any, 0, len(args))
+	for _, arg := range args {
+		arguments = append(arguments, slog.Attr{
+			Key:   arg.Key,
+			Value: slog.AnyValue(arg.Val),
+		})
+	}
+
+	l.l.Error(msg, arguments...)
 }
 
 func (l *slogLogger) Debug(msg string, args ...Arg) {
-	l.l.Debug(msg, args)
+	arguments := make([]any, 0, len(args))
+	for _, arg := range args {
+		arguments = append(arguments, slog.Attr{
+			Key:   arg.Key,
+			Value: slog.AnyValue(arg.Val),
+		})
+	}
+
+	l.l.Debug(msg, arguments...)
 }
