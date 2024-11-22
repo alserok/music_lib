@@ -1,0 +1,42 @@
+name: dev (CI)
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.23'
+
+      - name: Install Go dependencies
+        run: |
+          go mod tidy
+
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v4
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go environment
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.23'
+
+      - name: Install Go dependencies
+        run: |
+          go mod tidy
+
+      - name: Run tests
+        run: go test -v ./...
