@@ -1,4 +1,4 @@
-name: dev (CI)
+name: main (CI)
 on:
   pull_request:
     branches:
