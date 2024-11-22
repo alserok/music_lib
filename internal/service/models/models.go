@@ -2,7 +2,7 @@ package models
 
 type Song struct {
 	SongID string   `json:"songID" db:"song_id"`
-	Group  string   `json:"group"`
+	Group  string   `json:"group" db:"group_name"`
 	Song   string   `json:"song"`
 	Data   SongData `json:"data" swaggerignore:"true"`
 }

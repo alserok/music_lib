@@ -29,7 +29,7 @@ type Postgres struct {
 }
 
 func (p *Postgres) DSN() string {
-	return fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable", p.Host, p.Port, p.User, p.Name)
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", p.User, p.Pass, p.Host, p.Port, p.Name)
 }
 
 func MustLoad() *Config {

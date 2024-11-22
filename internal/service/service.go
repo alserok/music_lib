@@ -106,7 +106,7 @@ func (s *service) GetSongText(ctx context.Context, songID string, lim, off int) 
 			logger.WithArg("id", logger.ExtractIdentifier(ctx)),
 		)
 
-	text, err := s.repo.GetSongText(ctx, songID, lim, off)
+	text, err := s.repo.GetSongText(ctx, songID)
 	if err != nil {
 		return "", fmt.Errorf("repo failed to get song text: %w", err)
 	}

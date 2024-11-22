@@ -233,7 +233,7 @@ func (suite *HTTPHandlersSuite) TestGetSongText() {
 	rec := httptest.NewRecorder()
 
 	suite.repo.EXPECT().
-		GetSongText(gomock.Any(), gomock.Eq(song.SongID), gomock.Eq(lim), gomock.Eq(off)).
+		GetSongText(gomock.Any(), gomock.Eq(song.SongID)).
 		Return(song.Data.Text, nil).
 		Times(1)
 

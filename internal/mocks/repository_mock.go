@@ -78,18 +78,18 @@ func (mr *MockRepositoryMockRecorder) EditSong(ctx, song interface{}) *gomock.Ca
 }
 
 // GetSongText mocks base method.
-func (m *MockRepository) GetSongText(ctx context.Context, songID string, lim, off int) (string, error) {
+func (m *MockRepository) GetSongText(ctx context.Context, songID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSongText", ctx, songID, lim, off)
+	ret := m.ctrl.Call(m, "GetSongText", ctx, songID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSongText indicates an expected call of GetSongText.
-func (mr *MockRepositoryMockRecorder) GetSongText(ctx, songID, lim, off interface{}) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) GetSongText(ctx, songID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSongText", reflect.TypeOf((*MockRepository)(nil).GetSongText), ctx, songID, lim, off)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSongText", reflect.TypeOf((*MockRepository)(nil).GetSongText), ctx, songID)
 }
 
 // GetSongs mocks base method.

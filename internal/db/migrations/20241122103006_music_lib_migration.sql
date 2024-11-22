@@ -1,7 +1,5 @@
 -- +goose Up
 -- +goose StatementBegin
-SELECT 'up SQL query';
-
 CREATE TABLE songs
 (
     song_id      text PRIMARY KEY,
@@ -13,13 +11,11 @@ CREATE TABLE songs
 );
 
 CREATE INDEX song_id_index ON songs(song_id);
-CREATE INDEX song_index ON songs USING gin(song);
-CREATE INDEX group_index ON songs USING gin(group);
-CREATE INDEX text_index ON songs USING gin(text);
+CREATE INDEX song_index ON songs(song);
+CREATE INDEX group_index ON songs(group_name);
 -- +goose StatementEnd
 
 
 -- +goose Down
 -- +goose StatementBegin
-SELECT 'down SQL query';
 -- +goose StatementEnd
