@@ -4,11 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/alserok/music_lib/internal/logger"
 	"github.com/alserok/music_lib/internal/service/models"
 	"github.com/alserok/music_lib/internal/utils"
 	"net/http"
 	"net/http/httptest"
 )
+
+type SongDataAPIClient interface {
+	GetSongData(ctx context.Context, group string, song string) (models.SongData, error)
+}
 
 func NewSongDataClient(addr string) *songDataClient {
 	return &songDataClient{
@@ -28,6 +33,8 @@ type songDataClient struct {
 }
 
 func (s *songDataClient) GetSongData(ctx context.Context, group string, song string) (models.SongData, error) {
+	logger.ExtractLogger(ctx).Debug("SongDataAPI sending request", logger.WithArg("id", logger.ExtractIdentifier(ctx)))
+
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("%s%s", s.addr, pathInfo), nil)
 
 	query := req.URL.Query()
@@ -42,6 +49,11 @@ func (s *songDataClient) GetSongData(ctx context.Context, group string, song str
 	defer func() {
 		_ = res.Body.Close()
 	}()
+
+	logger.ExtractLogger(ctx).Debug("SongDataAPI response",
+		logger.WithArg("id", logger.ExtractIdentifier(ctx)),
+		logger.WithArg("res_status", res.StatusCode),
+	)
 
 	switch res.StatusCode {
 	case http.StatusOK:

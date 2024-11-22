@@ -109,10 +109,10 @@ func (r *repository) GetSongs(ctx context.Context, filter models.SongFilter) ([]
 	q := `SELECT * FROM songs 
          	WHERE 
          	    song_id = $1 OR $1 = '' AND
-         	    group = $2 OR $2 = '' AND
-				song = $3 OR $3 = '' AND
+         	    group LIKE '%$2%' OR $2 = '' AND
+				song LIKE '%$3%' OR $3 = '' AND
 				release_date = $4 OR $4 = '' AND
-				text = $5 OR $5 = '' AND
+				text LIKE '%$5%' OR $5 = '' AND
 				link = $6 OR $6 = ''
          	OFFSET $8 LIMIT $7`
 

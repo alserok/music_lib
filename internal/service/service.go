@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/alserok/music_lib/internal/api"
 	"github.com/alserok/music_lib/internal/db"
 	"github.com/alserok/music_lib/internal/logger"
 	"github.com/alserok/music_lib/internal/service/models"
@@ -19,12 +20,8 @@ type Service interface {
 	GetSongs(ctx context.Context, filter models.SongFilter) ([]models.Song, error)
 }
 
-type SongDataAPIClient interface {
-	GetSongData(ctx context.Context, group string, song string) (models.SongData, error)
-}
-
 type Clients struct {
-	SongDataAPIClient SongDataAPIClient
+	SongDataAPIClient api.SongDataAPIClient
 }
 
 func New(repo db.Repository, cls *Clients) *service {
@@ -37,7 +34,7 @@ func New(repo db.Repository, cls *Clients) *service {
 type service struct {
 	repo db.Repository
 
-	songDataAPIClient SongDataAPIClient
+	songDataAPIClient api.SongDataAPIClient
 }
 
 func (s *service) CreateSong(ctx context.Context, song models.Song) error {
@@ -118,7 +115,7 @@ func (s *service) GetSongText(ctx context.Context, songID string, lim, off int) 
 
 	if off+lim > len(couplets) {
 		return "", utils.NewError(
-			fmt.Sprintf("invalid pagination parameters: number of couplets: %d last_requested_couplet_index: %d", len(couplets), off+lim), utils.BadRequest)
+			fmt.Sprintf("invalid pagination parameters: number of couplets: %d last_requested_couplet_index: %d", len(couplets), off+lim-1), utils.BadRequest)
 	}
 
 	return strings.Join(couplets[off:lim+off], "\n\n"), nil

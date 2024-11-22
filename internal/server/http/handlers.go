@@ -107,6 +107,9 @@ func (h *handler) GetSongText(c echo.Context) error {
 	}
 
 	songID := c.Param("id")
+	if songID == "" {
+		return utils.NewError("songID is required", utils.BadRequest)
+	}
 
 	text, err := h.srvc.GetSongText(c.Request().Context(), songID, lim, offset)
 	if err != nil {

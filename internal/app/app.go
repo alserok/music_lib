@@ -30,5 +30,6 @@ func MustStart(cfg *config.Config) {
 	srvc := service.New(repo, &service.Clients{SongDataAPIClient: songDataClient})
 	srvr := server.New(server.HTTP, srvc, log)
 
+	log.Info("server is running", logger.WithArg("port", cfg.Port))
 	srvr.MustServe(cfg.Port)
 }

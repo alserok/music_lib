@@ -38,6 +38,6 @@ func WrapIdentifier(ctx context.Context) context.Context {
 	return context.WithValue(ctx, ctxIdentifier, uuid.NewString())
 }
 
-func ExtractIdentifier(ctx context.Context) ContextIdentifier {
-	return ctx.Value(ctxIdentifier).(ContextIdentifier)
+func ExtractIdentifier(ctx context.Context) string {
+	return ctx.Value(ctxIdentifier).(string)
 }
