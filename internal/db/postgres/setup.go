@@ -1,6 +1,11 @@
 package postgres
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+	"github.com/pressly/goose"
+
+	_ "github.com/lib/pq"
+)
 
 func MustConnect(dsn string) *sqlx.DB {
 	conn, err := sqlx.Connect("postgres", dsn)
@@ -12,11 +17,21 @@ func MustConnect(dsn string) *sqlx.DB {
 		panic("failed to ping database: " + dsn)
 	}
 
-	mustMigrate()
+	mustMigrate(conn)
 
 	return conn
 }
 
-func mustMigrate() {
+const (
+	migrationsDir = "./internal/db/migrations"
+)
 
+func mustMigrate(conn *sqlx.DB) {
+	if err := goose.SetDialect("postgres"); err != nil {
+		panic("failed to set dialect: " + err.Error())
+	}
+
+	if err := goose.Up(conn.DB, migrationsDir); err != nil {
+		panic("failed to migrate: " + err.Error())
+	}
 }

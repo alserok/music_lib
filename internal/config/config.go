@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type Config struct {
@@ -10,6 +12,12 @@ type Config struct {
 	Env  string
 
 	DB Postgres
+
+	Clients Clients
+}
+
+type Clients struct {
+	SongDataAPIAddr string
 }
 
 type Postgres struct {
@@ -35,6 +43,8 @@ func MustLoad() *Config {
 	cfg.DB.User = os.Getenv("DB_USER")
 	cfg.DB.Pass = os.Getenv("DB_PASS")
 	cfg.DB.Name = os.Getenv("DB_NAME")
+
+	cfg.Clients.SongDataAPIAddr = os.Getenv("SONG_DATA_API_ADDR")
 
 	return &cfg
 }
