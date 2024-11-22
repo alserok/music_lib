@@ -1,8 +1,12 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "title": "Music library API",
+        "contact": {},
+        "version": "1.0"
     },
+    "host": "localhost:5000",
+    "basePath": "/v1",
     "paths": {
         "/del/{id}": {
             "delete": {
@@ -66,13 +70,6 @@
                 ],
                 "summary": "EditSong",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Song ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": "Song details",
                         "name": "song",
@@ -277,7 +274,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Song"
+                            "$ref": "#/definitions/models.NewSong"
                         }
                     }
                 ],
@@ -303,7 +300,7 @@
         }
     },
     "definitions": {
-        "models.Song": {
+        "models.NewSong": {
             "type": "object",
             "properties": {
                 "group": {
@@ -311,8 +308,36 @@
                 },
                 "song": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Song": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.SongData"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "song": {
+                    "type": "string"
                 },
                 "songID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SongData": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "text": {
                     "type": "string"
                 }
             }

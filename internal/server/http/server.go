@@ -2,10 +2,12 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/alserok/music_lib/internal/logger"
 	"github.com/alserok/music_lib/internal/service"
 	"github.com/labstack/echo/v4"
+	"net/http"
 	"os/signal"
 	"syscall"
 )
@@ -33,7 +35,7 @@ func (s server) MustServe(port string) {
 	setupRoutes(s.serv, newHandler(s.srvc, s.log))
 
 	go func() {
-		if err := s.serv.Start(fmt.Sprintf(":%s", port)); err != nil {
+		if err := s.serv.Start(fmt.Sprintf(":%s", port)); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic("failed to start server: " + err.Error())
 		}
 	}()

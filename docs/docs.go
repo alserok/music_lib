@@ -78,13 +78,6 @@ const docTemplate = `{
                 "summary": "EditSong",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Song ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
                         "description": "Song details",
                         "name": "song",
                         "in": "body",
@@ -288,7 +281,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Song"
+                            "$ref": "#/definitions/models.NewSong"
                         }
                     }
                 ],
@@ -314,9 +307,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.NewSong": {
+            "type": "object",
+            "properties": {
+                "group": {
+                    "type": "string"
+                },
+                "song": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Song": {
             "type": "object",
             "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.SongData"
+                },
                 "group": {
                     "type": "string"
                 },
@@ -327,17 +334,31 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "models.SongData": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:5000",
+	BasePath:         "/v1",
 	Schemes:          []string{},
-	Title:            "",
+	Title:            "Music library API",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

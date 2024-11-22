@@ -9,10 +9,6 @@ CREATE TABLE songs
     text         TEXT,
     link         VARCHAR(255)
 );
-
-CREATE INDEX song_id_index ON songs(song_id);
-CREATE INDEX song_index ON songs(song);
-CREATE INDEX group_index ON songs(group_name);
 -- +goose StatementEnd
 
 

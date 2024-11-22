@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/alserok/music_lib/internal/logger"
 	"github.com/alserok/music_lib/internal/service/models"
 	"github.com/alserok/music_lib/internal/utils"
@@ -89,6 +91,9 @@ func (r *repository) GetSongText(ctx context.Context, songID string) (string, er
 
 	var text string
 	if err := r.db.QueryRowxContext(ctx, q, songID).Scan(&text); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", utils.NewError("song not found", utils.NotFound)
+		}
 		return "", utils.NewError(err.Error(), utils.Internal)
 	}
 

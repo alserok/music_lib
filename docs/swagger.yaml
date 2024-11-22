@@ -1,6 +1,16 @@
+basePath: /v1
 definitions:
+  models.NewSong:
+    properties:
+      group:
+        type: string
+      song:
+        type: string
+    type: object
   models.Song:
     properties:
+      data:
+        $ref: '#/definitions/models.SongData'
       group:
         type: string
       song:
@@ -8,8 +18,20 @@ definitions:
       songID:
         type: string
     type: object
+  models.SongData:
+    properties:
+      link:
+        type: string
+      releaseDate:
+        type: string
+      text:
+        type: string
+    type: object
+host: localhost:5000
 info:
   contact: {}
+  title: Music library API
+  version: "1.0"
 paths:
   /del/{id}:
     delete:
@@ -49,11 +71,6 @@ paths:
       - application/json
       description: Edit a specific song
       parameters:
-      - description: Song ID
-        in: path
-        name: id
-        required: true
-        type: string
       - description: Song details
         in: body
         name: song
@@ -191,7 +208,7 @@ paths:
         name: song
         required: true
         schema:
-          $ref: '#/definitions/models.Song'
+          $ref: '#/definitions/models.NewSong'
       produces:
       - application/json
       responses:

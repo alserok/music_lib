@@ -11,9 +11,6 @@ import (
 	_ "github.com/alserok/music_lib/docs"
 )
 
-// @title Music library API
-// @version 1.0
-// @BasePath /v1
 func MustStart(cfg *config.Config) {
 	log := logger.NewSlog(cfg.Env)
 	log.Info("starting server")

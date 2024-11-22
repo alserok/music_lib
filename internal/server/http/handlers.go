@@ -161,7 +161,6 @@ func (h *handler) DeleteSong(c echo.Context) error {
 // @Tags songs
 // @Accept json
 // @Produce json
-// @Param id path string true "Song ID"
 // @Param song body models.Song true "Song details"
 // @Success 200 {object} interface{} "Success"
 // @Failure 400 {object} string "Bad request"
@@ -195,7 +194,7 @@ func (h *handler) EditSong(c echo.Context) error {
 // @Tags songs
 // @Accept json
 // @Produce json
-// @Param song body models.Song true "Song details"
+// @Param song body models.NewSong true "Song details"
 // @Success 201 {object} interface{} "Created"
 // @Failure 400 {object} string "Bad request"
 // @Failure 500 {object} string "Internal error"
@@ -206,12 +205,12 @@ func (h *handler) CreateSong(c echo.Context) error {
 			logger.WithArg("id", logger.ExtractIdentifier(c.Request().Context())),
 		)
 
-	var song models.Song
+	var song models.NewSong
 	if err := c.Bind(&song); err != nil {
 		return utils.NewError(err.Error(), utils.BadRequest)
 	}
 
-	if err := h.srvc.CreateSong(c.Request().Context(), song); err != nil {
+	if err := h.srvc.CreateSong(c.Request().Context(), models.Song{Song: song.Song, Group: song.Group}); err != nil {
 		return fmt.Errorf("failed to create song: %w", err)
 	}
 

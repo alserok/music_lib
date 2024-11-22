@@ -19,6 +19,7 @@ func (e *err) Error() string {
 const (
 	Internal = iota
 	BadRequest
+	NotFound
 )
 
 func NewError(msg string, code int) error {
@@ -32,7 +33,7 @@ func FromErrorToHTTP(ctx context.Context, in error) (int, string) {
 	l := logger.ExtractLogger(ctx)
 
 	var e *err
-	if errors.As(in, &e) {
+	if !errors.As(in, &e) {
 		l.Error("unknown error", logger.WithArg("error", in.Error()))
 		return http.StatusInternalServerError, "internal server error"
 	}
@@ -43,6 +44,8 @@ func FromErrorToHTTP(ctx context.Context, in error) (int, string) {
 		return http.StatusInternalServerError, "internal server error"
 	case BadRequest:
 		return http.StatusBadRequest, e.msg
+	case NotFound:
+		return http.StatusNotFound, e.msg
 	default:
 		l.Error("unknown error code", logger.WithArg("code", e.code))
 		return http.StatusInternalServerError, "internal server error"

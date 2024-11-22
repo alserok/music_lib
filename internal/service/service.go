@@ -111,14 +111,19 @@ func (s *service) GetSongText(ctx context.Context, songID string, lim, off int) 
 		return "", fmt.Errorf("repo failed to get song text: %w", err)
 	}
 
+	text = strings.ReplaceAll(text, "\\n", "\n")
 	couplets := strings.Split(text, "\n\n")
 
-	if off+lim > len(couplets) {
+	if off >= len(couplets) {
 		return "", utils.NewError(
-			fmt.Sprintf("invalid pagination parameters: number of couplets: %d last_requested_couplet_index: %d", len(couplets), off+lim-1), utils.BadRequest)
+			fmt.Sprintf("invalid offset parameter: number of couplets: %d offset_index: %d", len(couplets), off), utils.BadRequest)
 	}
 
-	return strings.Join(couplets[off:lim+off], "\n\n"), nil
+	if off+lim > len(couplets) {
+		return strings.Join(couplets[off:], "\n\n"), nil
+	} else {
+		return strings.Join(couplets[off:lim+off], "\n\n"), nil
+	}
 }
 
 func (s *service) GetSongs(ctx context.Context, filter models.SongFilter) ([]models.Song, error) {
