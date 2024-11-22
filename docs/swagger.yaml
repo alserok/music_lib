@@ -1,0 +1,229 @@
+basePath: /v1
+definitions:
+  models.NewSong:
+    properties:
+      group:
+        type: string
+      song:
+        type: string
+    type: object
+  models.Song:
+    properties:
+      data:
+        $ref: '#/definitions/models.SongData'
+      group:
+        type: string
+      song:
+        type: string
+      songID:
+        type: string
+    type: object
+  models.SongData:
+    properties:
+      link:
+        type: string
+      releaseDate:
+        type: string
+      text:
+        type: string
+    type: object
+host: localhost:5000
+info:
+  contact: {}
+  title: Music library API
+  version: "1.0"
+paths:
+  /del/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a specific song
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema: {}
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Not found
+          schema:
+            type: string
+        "500":
+          description: Internal error
+          schema:
+            type: string
+      summary: DeleteSong
+      tags:
+      - songs
+  /edit/:
+    put:
+      consumes:
+      - application/json
+      description: Edit a specific song
+      parameters:
+      - description: Song details
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/models.Song'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema: {}
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal error
+          schema:
+            type: string
+      summary: EditSong
+      tags:
+      - songs
+  /get/songs:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of songs with optional filters
+      parameters:
+      - description: Limit of songs to return
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        required: true
+        type: integer
+      - description: Filter by songID
+        in: query
+        name: songID
+        type: string
+      - description: Filter by group
+        in: query
+        name: group
+        type: string
+      - description: Filter by song name
+        in: query
+        name: song
+        type: string
+      - description: Filter by text
+        in: query
+        name: text
+        type: string
+      - description: Filter by release date
+        in: query
+        name: releaseDate
+        type: string
+      - description: Filter by link
+        in: query
+        name: link
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            items:
+              $ref: '#/definitions/models.Song'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal error
+          schema:
+            type: string
+      summary: GetSongs
+      tags:
+      - songs
+  /get/songs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get the text of a specific song
+      parameters:
+      - description: Song ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Limit of text entries to return
+        in: query
+        name: limit
+        required: true
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: Not found
+          schema:
+            type: string
+        "500":
+          description: Internal error
+          schema:
+            type: string
+      summary: GetSongText
+      tags:
+      - songs
+  /new/song:
+    post:
+      consumes:
+      - application/json
+      description: Add a new song to the library
+      parameters:
+      - description: Song details
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/models.NewSong'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema: {}
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "500":
+          description: Internal error
+          schema:
+            type: string
+      summary: CreateSong
+      tags:
+      - songs
+swagger: "2.0"
