@@ -8,7 +8,7 @@ import (
 
 func setupRoutes(s *echo.Echo, h handler) {
 	v1 := s.Group("/v1")
-	v1.Use(middleware.WithErrorHandler, middleware.WithLogger(h.log))
+	v1.Use(middleware.WithRecovery(h.log), middleware.WithLogger(h.log), middleware.WithErrorHandler)
 	v1.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	get := v1.Group("/get")
