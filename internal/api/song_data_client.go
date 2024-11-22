@@ -9,6 +9,7 @@ import (
 	"github.com/alserok/music_lib/internal/utils"
 	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
 type SongDataAPIClient interface {
@@ -42,6 +43,7 @@ func (s *songDataClient) GetSongData(ctx context.Context, group string, song str
 	query.Set("song", song)
 	req.URL.RawQuery = query.Encode()
 
+	s.cl.Timeout = 1 * time.Second
 	res, err := s.cl.Do(req)
 	if err != nil {
 		return models.SongData{}, utils.NewError(err.Error(), utils.Internal)
