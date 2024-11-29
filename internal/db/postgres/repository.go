@@ -8,6 +8,7 @@ import (
 	"github.com/alserok/music_lib/internal/service/models"
 	"github.com/alserok/music_lib/internal/utils"
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 func NewRepository(db *sqlx.DB) *repository {
@@ -24,10 +25,29 @@ func (r *repository) CreateSong(ctx context.Context, song models.Song) error {
 			logger.WithArg("id", logger.ExtractIdentifier(ctx)),
 		)
 
-	q := `INSERT INTO songs (song_id, group_name, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5, $6)`
-
-	_, err := r.db.ExecContext(ctx, q, song.SongID, song.Group, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link)
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	q := `INSERT INTO songs (id, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5)`
+
+	_, err = tx.ExecContext(ctx, q, song.SongID, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link)
+	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+
+	q = `INSERT INTO group_songs (song_id, group_name) VALUES ($1, $2)`
+
+	_, err = tx.ExecContext(ctx, q, song.SongID, song.Group)
+	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+
+	if err = tx.Commit(); err != nil {
 		return utils.NewError(err.Error(), utils.Internal)
 	}
 
@@ -45,10 +65,29 @@ func (r *repository) EditSong(ctx context.Context, song models.Song) error {
 			logger.WithArg("id", logger.ExtractIdentifier(ctx)),
 		)
 
-	q := `UPDATE songs SET group_name = $2, song = $3, release_date = $4, text = $5, link = $6 WHERE song_id = $1`
-
-	_, err := r.db.ExecContext(ctx, q, song.SongID, song.Group, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link)
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	q := `UPDATE songs SET song = $2, release_date = $3, text = $4, link = $5 WHERE id = $1`
+
+	_, err = tx.ExecContext(ctx, q, song.SongID, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link)
+	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+
+	q = `UPDATE group_songs SET group_name = $2 WHERE song_id = $1`
+
+	_, err = tx.ExecContext(ctx, q, song.SongID, song.Group)
+	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+
+	if err = tx.Commit(); err != nil {
 		return utils.NewError(err.Error(), utils.Internal)
 	}
 
@@ -66,10 +105,29 @@ func (r *repository) DeleteSong(ctx context.Context, songID string) error {
 			logger.WithArg("id", logger.ExtractIdentifier(ctx)),
 		)
 
-	q := `DELETE FROM songs WHERE song_id = $1`
-
-	_, err := r.db.ExecContext(ctx, q, songID)
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	q := `DELETE FROM group_songs WHERE song_id = $1`
+
+	_, err = r.db.ExecContext(ctx, q, songID)
+	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+
+	q = `DELETE FROM songs WHERE id = $1`
+
+	_, err = tx.ExecContext(ctx, q, songID)
+	if err != nil {
+		return utils.NewError(err.Error(), utils.Internal)
+	}
+
+	if err = tx.Commit(); err != nil {
 		return utils.NewError(err.Error(), utils.Internal)
 	}
 
@@ -87,7 +145,7 @@ func (r *repository) GetSongText(ctx context.Context, songID string) (string, er
 			logger.WithArg("id", logger.ExtractIdentifier(ctx)),
 		)
 
-	q := `SELECT text FROM songs WHERE song_id = $1 LIMIT 1`
+	q := `SELECT text FROM songs WHERE id = $1 LIMIT 1`
 
 	var text string
 	if err := r.db.QueryRowxContext(ctx, q, songID).Scan(&text); err != nil {
@@ -111,18 +169,24 @@ func (r *repository) GetSongs(ctx context.Context, filter models.SongFilter) ([]
 			logger.WithArg("id", logger.ExtractIdentifier(ctx)),
 		)
 
-	q := `SELECT * FROM songs 
+	q := `SELECT 
+				group_songs.song_id as id, 
+				group_songs.group_name, 
+				songs.song, 
+				songs.release_date, 
+				songs.text, 
+				songs.link 
+			FROM songs INNER JOIN group_songs ON songs.id = group_songs.song_id
       WHERE 
-          (song_id = $1 OR $1 = '') AND
-          (group_name LIKE '%' || $2 || '%' OR $2 = '') AND
-          (song LIKE '%' || $3 || '%' OR $3 = '') AND
-          (release_date = $4 OR $4 = '') AND
-          (text LIKE '%' || $5 || '%' OR $5 = '') AND
-          (link = $6 OR $6 = '')
-      OFFSET $8 LIMIT $7`
+          (group_songs.song_id = $1 OR $1 = '') AND
+          (group_songs.group_name LIKE '%' || $2 || '%' OR $2 = '') AND
+          (songs.song LIKE '%' || $3 || '%' OR $3 = '') AND
+          (songs.release_date = $4 OR $4 IS NULL) AND
+          (songs.text LIKE '%' || $5 || '%' OR $5 = '') AND
+          (songs.link = $6 OR $6 = '')
+      OFFSET $7 LIMIT $8`
 
-	rows, err := r.db.QueryxContext(ctx, q,
-		filter.SongID, filter.Group, filter.Song, filter.ReleaseDate, filter.Text, filter.Link, filter.Lim, filter.Off)
+	rows, err := r.db.QueryxContext(ctx, q, filter.SongID, filter.Group, filter.Song, filter.ReleaseDate, filter.Text, filter.Link, filter.Off, filter.Lim)
 	if err != nil {
 		return nil, utils.NewError(err.Error(), utils.Internal)
 	}
@@ -130,12 +194,12 @@ func (r *repository) GetSongs(ctx context.Context, filter models.SongFilter) ([]
 	songs := make([]models.Song, 0, filter.Lim)
 	for rows.Next() {
 		var fullSongData struct {
-			SongID      string `json:"songID" db:"song_id"`
-			Group       string `json:"group" db:"group_name"`
-			Song        string `json:"song"`
-			ReleaseDate string `json:"releaseDate" db:"release_date"`
-			Text        string `json:"text"`
-			Link        string `json:"link"`
+			SongID      string    `json:"songID" db:"id"`
+			Group       string    `json:"group" db:"group_name"`
+			Song        string    `json:"song"`
+			ReleaseDate time.Time `json:"releaseDate" db:"release_date"`
+			Text        string    `json:"text"`
+			Link        string    `json:"link"`
 		}
 		if err = rows.StructScan(&fullSongData); err != nil {
 			// may not return an error and continue with the other songs
