@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestHandlersSuite(t *testing.T) {
@@ -53,23 +54,25 @@ func (suite *HTTPHandlersSuite) TeardownTest() {
 }
 
 func (suite *HTTPHandlersSuite) TestGetSongs() {
+	now := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	filter := models.SongFilter{
 		SongID:      "id",
 		Group:       "group",
 		Song:        "song",
-		ReleaseDate: "11.11.2011",
+		ReleaseDate: &now,
 		Text:        "text",
 		Link:        "link",
 		Lim:         1,
 		Off:         1,
 	}
+
 	songs := []models.Song{
 		{
 			Song:   filter.Song,
 			Group:  filter.Group,
 			SongID: filter.SongID,
 			Data: models.SongData{
-				ReleaseDate: filter.ReleaseDate,
+				ReleaseDate: now,
 				Text:        filter.Text,
 				Link:        filter.Link,
 			},
@@ -85,7 +88,7 @@ func (suite *HTTPHandlersSuite) TestGetSongs() {
 	query.Set("songID", filter.SongID)
 	query.Set("group", filter.Group)
 	query.Set("song", filter.Song)
-	query.Set("releaseDate", filter.ReleaseDate)
+	query.Set("releaseDate", now.Format("2006-01-02"))
 	query.Set("text", filter.Text)
 	query.Set("link", filter.Link)
 	req.URL.RawQuery = query.Encode()
@@ -117,7 +120,7 @@ func (suite *HTTPHandlersSuite) TestCreateSong() {
 	}
 
 	songData := models.SongData{
-		ReleaseDate: "11.11.2011",
+		ReleaseDate: time.Date(2024, 1, 1, 1, 1, 1, 0, time.UTC),
 		Text:        "text",
 		Link:        "link",
 	}
@@ -156,7 +159,7 @@ func (suite *HTTPHandlersSuite) TestEditSong() {
 		Group:  "group",
 		SongID: "id",
 		Data: models.SongData{
-			ReleaseDate: "11.11.2011",
+			ReleaseDate: time.Date(2024, 1, 1, 1, 1, 1, 0, time.UTC),
 			Text:        "text",
 			Link:        "link",
 		},
@@ -216,7 +219,7 @@ func (suite *HTTPHandlersSuite) TestGetSongText() {
 		Group:  "group",
 		SongID: "id",
 		Data: models.SongData{
-			ReleaseDate: "11.11.2011",
+			ReleaseDate: time.Date(2024, 1, 1, 1, 1, 1, 0, time.UTC),
 			Text:        strings.Join(couplets, "\n\n"),
 			Link:        "link",
 		},

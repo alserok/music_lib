@@ -53,7 +53,7 @@ func (suite *RepositorySuite) TestGetSongs() {
 			Song:   "song1",
 			Group:  "group1",
 			Data: models.SongData{
-				ReleaseDate: "11.11.2011",
+				ReleaseDate: time.Now(),
 				Text:        "song text 1",
 				Link:        "link1",
 			},
@@ -63,15 +63,20 @@ func (suite *RepositorySuite) TestGetSongs() {
 			Song:   "song2",
 			Group:  "group2",
 			Data: models.SongData{
-				ReleaseDate: "11.11.2011",
+				ReleaseDate: time.Now(),
 				Text:        "song text 2",
 				Link:        "link2",
 			},
 		},
 	}
 	for _, song := range songs {
-		_, err := suite.conn.Exec(`INSERT INTO songs (song_id, group_name, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5,$6)`,
-			song.SongID, song.Group, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+		_, err := suite.conn.Exec(`INSERT INTO songs (id, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5)`,
+			song.SongID, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+		)
+		suite.Require().NoError(err)
+
+		_, err = suite.conn.Exec(`INSERT INTO group_songs (song_id, group_name) VALUES ($1, $2)`,
+			song.SongID, song.Group,
 		)
 		suite.Require().NoError(err)
 	}
@@ -150,13 +155,17 @@ func (suite *RepositorySuite) TestGetSongText() {
 		Song:   "song1",
 		Group:  "group1",
 		Data: models.SongData{
-			ReleaseDate: "11.11.2011",
+			ReleaseDate: time.Now(),
 			Text:        "song text 1\n\nsong text 2",
 			Link:        "link1",
 		},
 	}
-	_, err := suite.conn.Exec(`INSERT INTO songs (song_id, group_name, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5,$6)`,
-		song.SongID, song.Group, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+	_, err := suite.conn.Exec(`INSERT INTO songs (id, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5)`,
+		song.SongID, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+	)
+	suite.Require().NoError(err)
+	_, err = suite.conn.Exec(`INSERT INTO group_songs (song_id, group_name) VALUES ($1, $2)`,
+		song.SongID, song.Group,
 	)
 	suite.Require().NoError(err)
 
@@ -167,7 +176,6 @@ func (suite *RepositorySuite) TestGetSongText() {
 	ctx := logger.WrapLogger(context.Background(), suite.logger)
 	ctx = logger.WrapIdentifier(ctx)
 
-	// get all songs
 	res, err := suite.repo.GetSongText(ctx, song.SongID)
 	suite.Require().NoError(err)
 	suite.Require().Equal(song.Data.Text, res)
@@ -179,7 +187,7 @@ func (suite *RepositorySuite) TestCreateSong() {
 		Song:   "song1",
 		Group:  "group1",
 		Data: models.SongData{
-			ReleaseDate: "11.11.2011",
+			ReleaseDate: time.Date(2024, 1, 1, 1, 1, 1, 0, time.UTC),
 			Text:        "song text 1\n\nsong text 2",
 			Link:        "link1",
 		},
@@ -196,17 +204,25 @@ func (suite *RepositorySuite) TestCreateSong() {
 	suite.Require().NoError(err)
 
 	var res struct {
-		SongID      string `json:"songID" db:"song_id"`
-		Group       string `json:"group" db:"group_name"`
-		Song        string `json:"song"`
-		ReleaseDate string `json:"releaseDate" db:"release_date"`
-		Text        string `json:"text"`
-		Link        string `json:"link"`
+		SongID      string    `json:"songID" db:"id"`
+		Group       string    `json:"group" db:"group_name"`
+		Song        string    `json:"song"`
+		ReleaseDate time.Time `json:"releaseDate" db:"release_date"`
+		Text        string    `json:"text"`
+		Link        string    `json:"link"`
 	}
-	suite.Require().NoError(suite.conn.QueryRowx(`SELECT * FROM songs LIMIT 1`).StructScan(&res))
+	suite.Require().NoError(suite.conn.QueryRowx(`
+				SELECT 
+					songs.id, 
+					group_songs.group_name, 
+					songs.song, 
+					songs.release_date, 
+					songs.text, 
+					songs.link  
+				FROM songs INNER JOIN group_songs ON songs.id = group_songs.song_id LIMIT 1`).StructScan(&res))
 	suite.Require().Equal(song, models.Song{SongID: res.SongID, Group: res.Group, Song: res.Song,
 		Data: models.SongData{
-			ReleaseDate: res.ReleaseDate,
+			ReleaseDate: res.ReleaseDate.UTC(),
 			Text:        res.Text,
 			Link:        res.Link,
 		}})
@@ -218,13 +234,17 @@ func (suite *RepositorySuite) TestEditSong() {
 		Song:   "song1",
 		Group:  "group1",
 		Data: models.SongData{
-			ReleaseDate: "11.11.2011",
+			ReleaseDate: time.Date(2024, 1, 1, 1, 1, 1, 0, time.UTC),
 			Text:        "song text 1\n\nsong text 2",
 			Link:        "link1",
 		},
 	}
-	_, err := suite.conn.Exec(`INSERT INTO songs (song_id, group_name, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5,$6)`,
-		song.SongID, song.Group, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+	_, err := suite.conn.Exec(`INSERT INTO songs (id, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5)`,
+		song.SongID, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+	)
+	suite.Require().NoError(err)
+	_, err = suite.conn.Exec(`INSERT INTO group_songs (song_id, group_name) VALUES ($1, $2)`,
+		song.SongID, song.Group,
 	)
 	suite.Require().NoError(err)
 
@@ -237,24 +257,31 @@ func (suite *RepositorySuite) TestEditSong() {
 
 	song.Song = "edited song title"
 	song.Group = "edited group title"
-	song.Data.ReleaseDate = "11.11.2012"
 	song.Data.Text = "edited song text"
 	song.Data.Link = "edited song link"
+	song.Data.ReleaseDate = time.Date(2024, 2, 1, 1, 1, 1, 0, time.UTC)
 	err = suite.repo.EditSong(ctx, song)
 	suite.Require().NoError(err)
 
 	var res struct {
-		SongID      string `json:"songID" db:"song_id"`
-		Group       string `json:"group" db:"group_name"`
-		Song        string `json:"song"`
-		ReleaseDate string `json:"releaseDate" db:"release_date"`
-		Text        string `json:"text"`
-		Link        string `json:"link"`
+		SongID      string    `json:"songID" db:"id"`
+		Group       string    `json:"group" db:"group_name"`
+		Song        string    `json:"song"`
+		ReleaseDate time.Time `json:"releaseDate" db:"release_date"`
+		Text        string    `json:"text"`
+		Link        string    `json:"link"`
 	}
-	suite.Require().NoError(suite.conn.QueryRowx(`SELECT * FROM songs LIMIT 1`).StructScan(&res))
+	suite.Require().NoError(suite.conn.QueryRowx(`SELECT 
+				group_songs.song_id as id, 
+				group_songs.group_name, 
+				songs.song, 
+				songs.release_date, 
+				songs.text, 
+				songs.link 
+			FROM songs INNER JOIN group_songs ON songs.id = group_songs.song_id LIMIT 1`).StructScan(&res))
 	suite.Require().Equal(song, models.Song{SongID: res.SongID, Group: res.Group, Song: res.Song,
 		Data: models.SongData{
-			ReleaseDate: res.ReleaseDate,
+			ReleaseDate: res.ReleaseDate.UTC(),
 			Text:        res.Text,
 			Link:        res.Link,
 		}})
@@ -266,13 +293,17 @@ func (suite *RepositorySuite) TestDeleteSong() {
 		Song:   "song1",
 		Group:  "group1",
 		Data: models.SongData{
-			ReleaseDate: "11.11.2011",
+			ReleaseDate: time.Now(),
 			Text:        "song text 1\n\nsong text 2",
 			Link:        "link1",
 		},
 	}
-	_, err := suite.conn.Exec(`INSERT INTO songs (song_id, group_name, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5,$6)`,
-		song.SongID, song.Group, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+	_, err := suite.conn.Exec(`INSERT INTO songs (id, song, release_date, text, link) VALUES ($1, $2, $3, $4, $5)`,
+		song.SongID, song.Song, song.Data.ReleaseDate, song.Data.Text, song.Data.Link,
+	)
+	suite.Require().NoError(err)
+	_, err = suite.conn.Exec(`INSERT INTO group_songs (song_id, group_name) VALUES ($1, $2)`,
+		song.SongID, song.Group,
 	)
 	suite.Require().NoError(err)
 
@@ -288,6 +319,9 @@ func (suite *RepositorySuite) TestDeleteSong() {
 
 	var res int64
 	suite.Require().NoError(suite.conn.QueryRowx(`SELECT count(*) FROM songs`).Scan(&res))
+	suite.Require().Equal(int64(0), res)
+
+	suite.Require().NoError(suite.conn.QueryRowx(`SELECT count(*) FROM group_songs`).Scan(&res))
 	suite.Require().Equal(int64(0), res)
 }
 

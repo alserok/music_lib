@@ -9,7 +9,7 @@ import (
 
 func setupRoutes(s *echo.Echo, h handler) {
 	s.GET("/ping", func(c echo.Context) error {
-		c.JSON(http.StatusOK, "pong")
+		_ = c.JSON(http.StatusOK, "pong")
 		return nil
 	})
 

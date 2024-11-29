@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type handler struct {
@@ -53,6 +54,7 @@ func (h *handler) GetSongs(c echo.Context) error {
 		return utils.NewError("failed to parse offset", utils.BadRequest)
 	}
 
+	releaseDate, _ := time.Parse("2006-01-02", c.QueryParam("releaseDate"))
 	filter := models.SongFilter{
 		Lim:         lim,
 		Off:         offset,
@@ -60,7 +62,7 @@ func (h *handler) GetSongs(c echo.Context) error {
 		Group:       c.QueryParam("group"),
 		Song:        c.QueryParam("song"),
 		Text:        c.QueryParam("text"),
-		ReleaseDate: c.QueryParam("releaseDate"),
+		ReleaseDate: &releaseDate,
 		Link:        c.QueryParam("link"),
 	}
 

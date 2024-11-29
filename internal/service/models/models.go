@@ -1,7 +1,9 @@
 package models
 
+import "time"
+
 type Song struct {
-	SongID string   `json:"songID" db:"song_id"`
+	SongID string   `json:"songID" db:"id"`
 	Group  string   `json:"group" db:"group_name"`
 	Song   string   `json:"song"`
 	Data   SongData `json:"data"`
@@ -13,16 +15,16 @@ type NewSong struct {
 }
 
 type SongData struct {
-	ReleaseDate string `json:"releaseDate" db:"release_date"`
-	Text        string `json:"text"`
-	Link        string `json:"link"`
+	ReleaseDate time.Time `json:"releaseDate" db:"release_date"`
+	Text        string    `json:"text"`
+	Link        string    `json:"link"`
 }
 
 type SongFilter struct {
-	SongID      string
+	SongID      string `db:"id"`
 	Group       string
 	Song        string
-	ReleaseDate string
+	ReleaseDate *time.Time
 	Text        string
 	Link        string
 	Lim         int
